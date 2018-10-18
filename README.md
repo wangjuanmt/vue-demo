@@ -2,7 +2,7 @@
 
 > A Vue.js project
 
-## install and init
+## Install and init
 ``` bash
 # install npm
 brew install npm
@@ -27,11 +27,14 @@ cd ...
 vue init webpack vueDemo
 ```
 
-## Build Setup
+## Build setup
 
 ``` bash
 # install dependencies
 npm install
+
+# 如果创建好的vue项目里没有 vue-router 路由依赖需要自行添加，如果创建项目时添加过了，可以省略
+npm install vue-router --save
 
 # serve with hot reload at localhost:8080
 npm run dev
@@ -93,4 +96,28 @@ npm run dev
 
 Now we can see a row of buttons below the HelloWorld page. These buttons are the same as the first row in http://element-cn.eleme.io/#/zh-CN/component/button.
 
+## Construction
+-- Script start entry : package.json
+    <- build/webpack.dev.conf.js 
+    <- build/webpack.base.conf.js
+    <- src/main.js  // 所有前端的入口
+
+-- 所有前端的入口 : src/main.js
+    <- src/App.vue
+
+-- 所有前端的入口 : src/main.js
+    <- src/router/index.js //加载路由
+
+-- 所有前端的入口 : src/main.js
+    <- 加载vue, element-ui, etc.
+
+## Add axios to request http
+```bash
+# install axios
+npm install --save axios
+# restart
+npm run dev
+```
+If directly request in fe using axios.get(`https://api.douban.com/v2/movie/top250?count=10`), it will happen CORS issue, with exception: 
+Failed to load https://api.douban.com/v2/movie/top250?count=10: No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:8080' is therefore not allowed access.
 
