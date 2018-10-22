@@ -1,27 +1,23 @@
 <template>
     <el-row>
-        <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+        <el-col>
             <el-table
             :data="tableData"
-            style="width: 100%">
+            v-loading="loading"
+            size="medium">
                 <el-table-column
-                    prop="name"
-                    label="电影名称"
-                    width="180">
-                </el-table-column>
-                <el-table-column
-                    prop="date"
-                    label="上映日期"
-                    width="180">
-                </el-table-column>
-                <el-table-column
-                    prop="derector"
-                    label="导演">
-                    width="180">
-                </el-table-column>
+                            prop="title"
+                            label="电影名称"
+                            align="center">
+                    </el-table-column>
+                    <el-table-column
+                            prop="year"
+                            label="上映时间"
+                            align="center">
+                    </el-table-column>
             </el-table>
 
-            <div class="block">
+            <div>
                 <span class="demonstration"></span>
                 <el-pagination
                     @size-change="handleSizeChange"
@@ -39,39 +35,47 @@
 
 </template>
 
-
- 
-
 <script>
-import {getMovieList} from '../../apis/movie'
+import { getListInfo } from "../../apis/movie";
 export default {
-    data() {
-        return {
-            totalPages: 1,
-            pageSize: 15,
-            currentPage: 1,
-            size: 20,
-            page: 1,
-            movieList: [],
-            tableData: []
-        }
+  data() {
+    return {
+      totalPages: 1,
+      pageSize: 10,
+      currentPage: 1,
+      size: 20,
+      page: 1,
+      tableData: [],
+      loading: true
+    };
+  },
+
+  methods: {
+    getData(size, page) {
+      var var1;
+      getListInfo(size, page).then(response => {
+        var1 = response.data;
+        this.totalPages = var1.total;
+        this.pageSize = var1.count;
+        console.log(`每页 ${this.pageSize}条`);
+        this.tableData = var1.subjects;
+        this.loading = false;
+      });
     },
 
-    methods: {
-        searchData () {
-        getMovieList().then(res => {
-          this.tableData = res;
-        });
-      },
-        handleSizeChange(val) {
-          console.log(`每页 ${val} 条`);
-        },
-        handleCurrentChange(val) {
-          console.log(`当前页: ${val}`);
-        }
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.currentPage = 1;
+      this.getData(this.pageSize, this.currentPage);
+      console.log(`每页 ${val} 条`);
     },
-    mounted() {
-      this.searchData();
+    handleCurrentChange(val) {
+      this.getData(this.pageSize, val);
+      console.log(`现在是第 ${val} 页`);
     }
+  },
+  mounted() {
+    this.getData(10, 1);
+  }
 };
 </script>

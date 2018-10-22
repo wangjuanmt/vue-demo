@@ -111,13 +111,74 @@ Now we can see a row of buttons below the HelloWorld page. These buttons are the
 -- 所有前端的入口 : src/main.js
     <- 加载vue, element-ui, etc.
 
-## Add axios to request http
+## Add vue-resource or axios to request http, and resovle CORS issue.
 ```bash
+# install vue-resource
+npm install vue-resource --save
 # install axios
 npm install --save axios
 # restart
 npm run dev
 ```
+### Resovle CORS issue for localhost
 If directly request in fe using axios.get(`https://api.douban.com/v2/movie/top250?count=10`), it will happen CORS issue, with exception: 
 Failed to load https://api.douban.com/v2/movie/top250?count=10: No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://localhost:8080' is therefore not allowed access.
 
+因为前后端分离，前端后端使用不同的端口，即使不访问外网，都是localhost，也会出现CORS跨域问题。
+localhost不同端口的CORS的解决的办法是(后端代码不变，前端改端口)：
+在config/index.js中修改前端占用端口是8080 -> 8081
+``````
+host: 'localhost',
+port: 8081,
+``````
+另外添加proxyTable:
+``````
+// Paths
+    assetsSubDirectory: 'static',
+    assetsPublicPath: '/',
+    proxyTable: {
+      '/api': {
+        target: 'http://localhost:8080',
+            changeOrigin:true,
+        pathRewrite: {
+          '^/api': ''
+        }
+      }
+    },
+``````
+### Resovle "TypeError: Cannot read property 'total' of undefined" when calling a axios method
+
+Issue:
+[Vue warn]: Error in mounted hook: "TypeError: Cannot read property 'total' of undefined"
+
+The error line at MovieList.vue:
+``````
+getData(size, page) {
+      var var1;
+      getListInfo(size, page).then(response => {
+        var1 = response.data;
+      });
+
+      this.totalPages = var1.total;  // Error line
+      this.pageSize = var1.count;
+      console.log(`每页 ${this.pageSize}条`);
+      this.tableData = var1.subjects;
+      this.loading = false;
+    },
+``````
+错误原因是：getListInfo是异步axios请求，代码不会等到getListInfo.then运行结束，就会接着运行下面，所以var1还没有值。
+
+解决的办法是：把需要用到response结果的变量放在then体内。如下：
+``````
+getData(size, page) {
+      var var1;
+      getListInfo(size, page).then(response => {
+        var1 = response.data;
+        this.totalPages = var1.total;
+        this.pageSize = var1.count;
+        console.log(`每页 ${this.pageSize}条`);
+        this.tableData = var1.subjects;
+        this.loading = false;
+      });
+    },
+``````
